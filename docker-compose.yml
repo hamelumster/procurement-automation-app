@@ -1,6 +1,7 @@
 services:
 
   db:
+    container_name: pa_db
     image: postgres:14.3-alpine3.15
     ports:
       - "5431:5432"
@@ -17,6 +18,7 @@ services:
       retries: 5
 
   web:
+    container_name: pa_web
     build:
       context: .
     command: python manage.py runserver 0.0.0.0:8000
