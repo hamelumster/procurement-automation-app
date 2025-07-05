@@ -34,3 +34,16 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.supplier.user.email})"
+
+
+class Category(models.Model):
+    """
+    Хранит данные из shop1.yaml:
+    external_id
+    name
+    """
+    external_id = models.IntegerField(unique=True, help_text='ID из shop1.yaml')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
