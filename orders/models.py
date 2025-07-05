@@ -20,6 +20,15 @@ class Cart(models.Model):
             item.save(update_fields=['quantity'])
         return item
 
+    def remove_item(self, product):
+        pass
+
+    def clear(self):
+        pass
+
+    def get_total(self):
+        pass
+
     def __str__(self):
         return f"Cart #{self.id} {self.user.email}"
 
