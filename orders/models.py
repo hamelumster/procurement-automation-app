@@ -35,3 +35,48 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
+
+
+class Order(models.Model):
+    """
+    Заказ: привязан к пользователю и контакту доставки
+    """
+    STATUS_NEW = 'new'
+    STATUS_IN_PROGRESS = 'in_progress'
+    STATUS_SHIPPED = 'shipped'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'Новый'),
+        (STATUS_IN_PROGRESS, 'В обработке'),
+        (STATUS_SHIPPED, 'Отправлен'),
+        (STATUS_COMPLETED, 'Завершен'),
+        (STATUS_CANCELLED, 'Отменен'),
+    ]
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='orders'
+    )
+    delivery_contact = models.ForeignKey(
+        'users.DeliveryContact',
+        on_delete=models.PROTECT,
+        help_text='Контактная информация для доставки'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_NEW
+    )
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text='Общая сумма заказа'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Order #{self.id} ({self.get_status_display()})"
+    
