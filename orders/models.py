@@ -121,6 +121,13 @@ class Order(models.Model):
         self.status = self.STATUS_SHIPPED
         self.save(update_fields=['status'])
 
+    def complete(self):
+        """
+        Устанавливает заказу статус COMPLETED
+        """
+        self.status = self.STATUS_COMPLETED
+        self.save(update_fields=['status'])
+
     def __str__(self):
         return f"Order #{self.id} ({self.get_status_display()})"
 
