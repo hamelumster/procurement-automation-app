@@ -27,6 +27,12 @@ class UserProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Дата и время последнего обновления профиля')
 
+    def is_client(self):
+        return self.role == self.ROLE_CLIENT
+
+    def is_supplier(self):
+        return self.role == self.ROLE_SUPPLIER
+
     def __str__(self):
         return f"{self.user.email} ({self.get_role_display()})"
 
