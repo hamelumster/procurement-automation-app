@@ -79,4 +79,28 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} ({self.get_status_display()})"
-    
+
+
+class OrderItem(models.Model):
+    """
+    Товар в заказе с ценой и количеством
+    """
+    order = models.ForeignKey(
+        'Order',
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    product = models.ForeignKey(
+        'products.Product',
+        on_delete=models.PROTECT,
+        related_name='order_items'
+    )
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text='Цена за единицу товара'
+    )
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name}, цена за единицу: {self.unit_price}"
