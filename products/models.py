@@ -9,10 +9,11 @@ class Product(models.Model):
         related_name='products'
     )
     model = models.CharField(max_length=255)
-    supplier = models.ForeignKey(
-        'users.SupplierProfile',
+    shop = models.ForeignKey(
+        'shop.Shop',
         on_delete=models.CASCADE,
-        related_name='products'
+        related_name='products',
+        help_text='Магазин, в котором продается товар'
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
