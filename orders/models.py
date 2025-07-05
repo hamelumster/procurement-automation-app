@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 
@@ -21,13 +23,16 @@ class Cart(models.Model):
         return item
 
     def remove_item(self, product):
-        pass
+        self.items.filter(product=product).delete()
 
     def clear(self):
-        pass
+        self.items.all().delete()
 
     def get_total(self):
-        pass
+        total = Decimal('0')
+        for item in self.items.select_related('product'):
+            total += item.get_subtotal()
+        return total
 
     def __str__(self):
         return f"Cart #{self.id} {self.user.email}"
