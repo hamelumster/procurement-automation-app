@@ -13,6 +13,13 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def add_item(self, product, qty=1):
+        item, created = self.items.get_or_create(product=product, defaults={'quantity': qty})
+        if not created:
+            item.quantity += qty
+            item.save(update_fields=['quantity'])
+        return item
+
     def __str__(self):
         return f"Cart #{self.id} {self.user.email}"
 
