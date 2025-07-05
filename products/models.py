@@ -23,5 +23,14 @@ class Product(models.Model):
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
 
+    def in_stock(self, qty=1):
+        return self.quantity >= qty
+
+    def decrease_stock(self, qty):
+        if qty > self.quantity:
+            raise ValueError('Недостаточно товара в наличии')
+        self.quantity -= qty
+        self.save(update_fields=['quantity'])
+
     def __str__(self):
         return f"{self.name} ({self.supplier.user.email})"
