@@ -114,6 +114,13 @@ class Order(models.Model):
         self.status = self.STATUS_IN_PROGRESS
         self.save(update_fields=['status', 'total_amount'])
 
+    def mark_shipped(self):
+        """
+        Устанавливает заказу статус SHIPPED
+        """
+        self.status = self.STATUS_SHIPPED
+        self.save(update_fields=['status'])
+
     def __str__(self):
         return f"Order #{self.id} ({self.get_status_display()})"
 
