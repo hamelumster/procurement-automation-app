@@ -57,6 +57,9 @@ class CartItem(models.Model):
     class Meta:
         unique_together = ('cart', 'product')
 
+    def get_subtotal(self):
+        return self.product.price * self.quantity
+
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
 
