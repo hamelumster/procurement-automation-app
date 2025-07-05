@@ -2,6 +2,13 @@ from django.db import models
 
 
 class Product(models.Model):
+    external_id = models.IntegerField(unique=True)
+    category = models.ForeignKey(
+        'products.Category',
+        on_delete=models.PROTECT,
+        related_name='products'
+    )
+    model = models.CharField(max_length=255)
     supplier = models.ForeignKey(
         'users.SupplierProfile',
         on_delete=models.CASCADE,
@@ -15,6 +22,7 @@ class Product(models.Model):
         help_text='Характеристики товара в виде словаря'
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    price_rrc = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
