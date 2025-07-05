@@ -135,6 +135,15 @@ class Order(models.Model):
         self.status = self.STATUS_CANCELLED
         self.save(update_fields=['status'])
 
+    def calculate_total(self):
+        total = sum(
+            item.quantity * item.unit_price
+            for item in self.items.select_related('product')
+        )
+        self.total_amount = total
+        self.save(update_fields=['total_amount'])
+        return total
+
     def __str__(self):
         return f"Order #{self.id} ({self.get_status_display()})"
 
