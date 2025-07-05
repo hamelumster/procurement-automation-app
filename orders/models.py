@@ -17,3 +17,21 @@ class Cart(models.Model):
         return f"Cart #{self.id} {self.user.email}"
 
 
+class CartItem(models.Model):
+    """
+    Товары в корзине
+    """
+    cart = models.ForeignKey(
+        'Cart',
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    product = models.ForeignKey(
+        'products.Product',
+        on_delete=models.CASCADE,
+        related_name='cart_items'
+    )
+    quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name}"
