@@ -31,6 +31,14 @@ class UserProfile(models.Model):
         return f"{self.user.email} ({self.get_role_display()})"
 
 
+class SupplierProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL,
+                                on_delete=models.CASCADE,
+                                related_name='supplier_profile')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class DeliveryContact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
