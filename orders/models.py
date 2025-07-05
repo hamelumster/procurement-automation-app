@@ -33,6 +33,9 @@ class CartItem(models.Model):
     )
     quantity = models.PositiveIntegerField(default=1)
 
+    class Meta:
+        unique_together = ('cart', 'product')
+
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
 
@@ -101,6 +104,9 @@ class OrderItem(models.Model):
         decimal_places=2,
         help_text='Цена за единицу товара'
     )
+
+    class Meta:
+        unique_together = ('order', 'product')
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}, цена за единицу: {self.unit_price}"
