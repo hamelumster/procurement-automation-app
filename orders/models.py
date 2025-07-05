@@ -73,6 +73,7 @@ class Order(models.Model):
     STATUS_SHIPPED = 'shipped'
     STATUS_COMPLETED = 'completed'
     STATUS_CANCELLED = 'cancelled'
+
     STATUS_CHOICES = [
         (STATUS_NEW, 'Новый'),
         (STATUS_IN_PROGRESS, 'В обработке'),
@@ -103,6 +104,15 @@ class Order(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def start_processing(self):
+        """
+        Переводит заказ из состояния NEW в IN_PROGRESS,
+        посчитает итоговую сумму и сохраняет изменения
+        """
+        self.calculate_total()
+        self.status = self.STATUS_IN_PROGRESS
+        self.save(update_fields=['status', 'total_amount'])
 
     def __str__(self):
         return f"Order #{self.id} ({self.get_status_display()})"
