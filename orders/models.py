@@ -172,5 +172,8 @@ class OrderItem(models.Model):
     class Meta:
         unique_together = ('order', 'product')
 
+    def get_total_price(self):
+        return self.quantity * self.unit_price
+
     def __str__(self):
         return f"{self.quantity} x {self.product.name}, цена за единицу: {self.unit_price}"
