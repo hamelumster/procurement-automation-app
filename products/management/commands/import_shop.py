@@ -80,7 +80,7 @@ class Command(BaseCommand):
                     'shop': shop,
                     'model': item['model'],
                     'name': item['name'],
-                    'description': item['description'],
+                    'description': item.get('description', ''),
                     'characteristics': item.get('characteristics', {}),
                     'price': item['price'],
                     'price_rrc': item['price_rrc'],
