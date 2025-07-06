@@ -1,13 +1,22 @@
 import yaml
 from django.core.management import BaseCommand, CommandError
 
+from shops.models import Shop
+
 
 class Command(BaseCommand):
     help="Импортирует товары из yaml файла"
     def add_arguments(self, parser):
-        parser.add_argument('yaml_file',
-                            type=str,
-                            help='Путь к yaml-файлу с данными'
+        parser.add_argument(
+            'yaml_file',
+            type=str,
+            help='Путь к yaml-файлу с данными'
+        )
+        parser.add_argument(
+            '--supplier-email',
+            type=str,
+            required=True,
+            help='Email поставщика'
         )
 
     def handle(self, *args, **options):
@@ -21,4 +30,3 @@ class Command(BaseCommand):
             raise CommandError(f'Файл {yaml_path} не найден')
         except yaml.YAMLError as e:
             raise CommandError(f'Ошибка: {e}')
-        
