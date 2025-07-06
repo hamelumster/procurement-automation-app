@@ -1,6 +1,7 @@
 import yaml
 from django.core.management import BaseCommand, CommandError
 
+from products.models import Category
 from shops.models import Shop
 from users.models import SupplierProfile
 
@@ -50,4 +51,15 @@ class Command(BaseCommand):
         )
         self.stdout.write(f"Магазин {shop_name} {'создан' if created else 'найден'}")
 
-        
+        # 4 Импорт категорий
+        created_cats = updated_cats = 0
+        for cat_data in data.get('categories', []):
+            obj, was_created = Category.objects.update_or_create(
+                external_id=cat_data['id'],
+                defaults={'name': cat_data['name']}
+            )
+            if was_created:
+                created_cats += 1
+            else:
+                updated_cats += 1
+        self.stdout.write(f"Создано {created_cats} категорий, обновлено {updated_cats}")
