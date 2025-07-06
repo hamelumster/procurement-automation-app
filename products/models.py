@@ -10,7 +10,7 @@ class Product(models.Model):
     )
     model = models.CharField(max_length=255)
     shop = models.ForeignKey(
-        'shop.Shop',
+        'shops.Shop',
         on_delete=models.CASCADE,
         related_name='products',
         help_text='Магазин, в котором продается товар'
