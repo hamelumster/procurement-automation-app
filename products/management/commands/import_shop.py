@@ -2,6 +2,7 @@ import yaml
 from django.core.management import BaseCommand, CommandError
 
 from shops.models import Shop
+from users.models import SupplierProfile
 
 
 class Command(BaseCommand):
@@ -21,6 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         yaml_path = options['yaml_file']
+        supplier_email = options['supplier_email']
 
         # 1 Загрузить yaml файл
         try:
@@ -30,3 +32,10 @@ class Command(BaseCommand):
             raise CommandError(f'Файл {yaml_path} не найден')
         except yaml.YAMLError as e:
             raise CommandError(f'Ошибка: {e}')
+
+        # Найти поставщика по email
+        try:
+            supplier = SupplierProfile.objects.get(user__email=supplier_email)
+        except SupplierProfile.DoesNotExist:
+            raise CommandError(f'Поставщик с email {supplier_email} не найден')
+        
