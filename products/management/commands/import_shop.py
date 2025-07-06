@@ -1,7 +1,7 @@
 import yaml
 from django.core.management import BaseCommand, CommandError
 
-from products.models import Category
+from products.models import Category, Product
 from shops.models import Shop
 from users.models import SupplierProfile
 
@@ -63,3 +63,33 @@ class Command(BaseCommand):
             else:
                 updated_cats += 1
         self.stdout.write(f"Создано {created_cats} категорий, обновлено {updated_cats}")
+
+        # 5 Импорт товаров
+        created_products = updated_products = 0
+        for item in data.get('goods', []):
+            try:
+                category = Category.objects.get(external_id=item['category'])
+            except Category.DoesNotExist:
+                self.stdout.write(f"Категория {item['category']} не найдена")
+                continue
+
+            product, was_created = Product.objects.update_or_create(
+                external_id=item['id'],
+                defaults={
+                    'category': category,
+                    'shop': shop,
+                    'model': item['model'],
+                    'name': item['name'],
+                    'description': item['description'],
+                    'characteristics': item.get('characteristics', {}),
+                    'price': item['price'],
+                    'price_rrc': item['price_rrc'],
+                    'quantity': item['quantity'],
+                }
+            )
+            if was_created:
+                created_products += 1
+            else:
+                updated_products += 1
+        self.stdout.write(f"Создано {created_products} товаров, обновлено {updated_products}")
+        
