@@ -39,3 +39,30 @@ class AuthTests(APITestCase):
         response_3 = self.client.post(url_token_refresh, {'refresh': response_2.data['refresh']}, format='json')
         self.assertEqual(response_3.status_code, status.HTTP_200_OK)
         self.assertIn('access', response_3.data)
+
+    def test_login(self):
+        # 1 Зарегистрировать пользователя
+        self.client.post(
+            reverse('auth_register'),
+            {
+                'first_name': 'Jack',
+                'last_name': 'Sparrow',
+                'email': 'black_pearl@example.com',
+                'password': '12345678'
+            },
+            format='json'
+        )
+
+        # 2 Попытаться залогиниться
+        response = self.client.post(
+            reverse('auth_login'),
+            {
+                'email': 'black_pearl@example.com',
+                'password': '12345678'
+            },
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
