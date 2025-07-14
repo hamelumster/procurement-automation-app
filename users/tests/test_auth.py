@@ -29,7 +29,7 @@ class AuthTests(APITestCase):
 
         # Логин (получение токенов)
         url_token = reverse('token_obtain_pair')
-        response_2 = self.client.post(url_token, data, format='json')
+        response_2 = self.client.post(url_token, {'username': data['email'], 'password': data['password']}, format='json')
         self.assertEqual(response_2.status_code, status.HTTP_200_OK)
         self.assertIn('access', response_2.data)
         self.assertIn('refresh', response_2.data)
