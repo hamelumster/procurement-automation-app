@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework import permissions
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.serializers import RegistrationSerializer
 
@@ -16,5 +17,8 @@ class RegisterAPIView():
         # 2 Создаем пользователя + профиль
         user = serializer.save()
 
+        # 3 Генерируем токен
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
         
 
