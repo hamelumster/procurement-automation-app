@@ -22,4 +22,9 @@ class AuthTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('access', response.data)
         self.assertIn('refresh', response.data)
+
+        # Пользователь создан
+        user = User.objects.get(email=data['email'])
+        self.assertTrue(user.check_password(data['password']))
+
         
