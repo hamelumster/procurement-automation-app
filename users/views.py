@@ -13,4 +13,8 @@ class RegisterAPIView():
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        # 2 Создаем пользователя + профиль
+        user = serializer.save()
+
         
+
