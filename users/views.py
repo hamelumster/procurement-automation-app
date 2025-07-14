@@ -11,6 +11,19 @@ class RegisterAPIView():
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
+        """
+        POST /api/auth/register/
+        {
+            "first_name": "Jack",
+            "last_name": "Sparrow",
+            "email": "black_pearl@example.com",
+            "password": "12345678"
+        }
+        -> {
+        "refresh": <jwt_refresh_token>
+        "access": <jwt_access_token>
+        }
+        """
         # 1 Проверяем данные
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
