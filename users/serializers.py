@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from users.models import UserProfile
+
 User = get_user_model()
 
 
@@ -20,4 +22,18 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Пользователь с таким email уже зарегистрирован')
         return value
 
-    
+    def create(self, validated_data):
+        # Создаем пользователя и хешируем пароль
+        user = User(
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'],
+            username=validated_data['email'],
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        # Создаем профиль клиента
+        UserProfile.objects.create(user=user, role=UserProfile.ROLE_CLIENT)
+
+        return user
