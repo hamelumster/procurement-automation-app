@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from rest_framework import permissions
+from rest_framework import permissions, status
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.serializers import RegistrationSerializer
@@ -20,5 +21,13 @@ class RegisterAPIView():
         # 3 Генерируем токен
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
-        
+
+        # 4 Возвращаем токен
+        return Response(
+            {
+                'refresh': str(refresh),
+                'access': str(access)
+            },
+            status=status.HTTP_201_CREATED
+        )
 
