@@ -1,12 +1,12 @@
 from django.shortcuts import render
-from rest_framework import permissions, status
+from rest_framework import permissions, status, generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.serializers import RegistrationSerializer
 
 
-class RegisterAPIView():
+class RegisterAPIView(generics.CreateAPIView):
     serializer_class = RegistrationSerializer
     permission_classes = [permissions.AllowAny]
 
