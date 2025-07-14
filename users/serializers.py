@@ -1,5 +1,7 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from users.models import UserProfile
 
@@ -37,3 +39,32 @@ class RegistrationSerializer(serializers.ModelSerializer):
         UserProfile.objects.create(user=user, role=UserProfile.ROLE_CLIENT)
 
         return user
+
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Логин по email, а не по username
+    """
+    username_field = 'email'
+
+    def validate(self, attrs):
+        # attrs = {'email': 'email', 'password': 'password'}
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        user = authenticate(
+            request=self.context.get('request'),
+            username=email,
+            password=password
+        )
+        if user is None or not user.is_active:
+            raise AuthenticationFailed(
+                "Неверный учетные данные",
+                "no_active_account",
+            )
+
+        refresh = self.get_token(user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
