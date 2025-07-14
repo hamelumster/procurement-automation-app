@@ -33,4 +33,9 @@ class AuthTests(APITestCase):
         self.assertEqual(response_2.status_code, status.HTTP_200_OK)
         self.assertIn('access', response_2.data)
         self.assertIn('refresh', response_2.data)
-        
+
+        # Refresh токен
+        url_token_refresh = reverse('token_refresh')
+        response_3 = self.client.post(url_token_refresh, {'refresh': response_2.data['refresh']}, format='json')
+        self.assertEqual(response_3.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response_3.data)
