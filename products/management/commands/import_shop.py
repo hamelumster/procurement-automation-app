@@ -81,7 +81,7 @@ class Command(BaseCommand):
                     'model': item['model'],
                     'name': item['name'],
                     'description': item.get('description', ''),
-                    'characteristics': item.get('characteristics', {}),
+                    'characteristics': item.get('parameters', {}),
                     'price': item['price'],
                     'price_rrc': item['price_rrc'],
                     'quantity': item['quantity'],
