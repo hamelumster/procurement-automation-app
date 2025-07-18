@@ -53,6 +53,11 @@ class CartItem(models.Model):
         related_name='cart_items'
     )
     quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text='Цена за единицу товара на момент добавления в корзину'
+    )
 
     class Meta:
         unique_together = ('cart', 'product')
