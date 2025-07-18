@@ -8,7 +8,6 @@ class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     shop = serializers.CharField(source='product.shop.name', read_only=True)
     unit_price = serializers.DecimalField(
-        source='unit_price',
         max_digits=10,
         decimal_places=2,
         read_only=True)
@@ -30,7 +29,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    items = CartItemSerializer(many=True, source='cartitem_set', read_only=True)
+    items = CartItemSerializer(many=True, read_only=True)
     total = serializers.SerializerMethodField()
 
     class Meta:
@@ -38,7 +37,8 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ('items', 'total')
 
     def get_total(self, cart):
-        return sum(item.unit_price * item.quantity for item in cart.cartitem_set.all())
+        return sum(item.unit_price * item.quantity for item in cart.items.all())
+
 
 class AddCartItemSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
