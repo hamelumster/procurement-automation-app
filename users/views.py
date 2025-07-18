@@ -50,7 +50,7 @@ class RegisterAPIView(generics.CreateAPIView):
 class EmailTokenObtainPairView(TokenObtainPairView):
     """
     Логин по email + password;
-    возвращает refresh и access
+    возвращает refresh и access токены
     """
     serializer_class = EmailTokenObtainPairSerializer
 
