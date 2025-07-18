@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from orders.models import CartItem, Cart
+from products.models import Product
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -38,3 +39,12 @@ class CartSerializer(serializers.ModelSerializer):
 
     def get_total(self, cart):
         return sum(item.unit_price * item.quantity for item in cart.cartitem_set.all())
+
+class AddCartItemSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+
+    def validate_product_id(self, pk):
+        if not Product.objects.filter(pk=pk).exists():
+            raise serializers.ValidationError('Товар не найден')
+        return pk
