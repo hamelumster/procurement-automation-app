@@ -21,12 +21,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from orders.views import CartViewSet, OrderViewSet
 from products.views import ProductViewSet
-from users.views import RegisterAPIView, EmailTokenObtainPairView
+from users.views import RegisterAPIView, EmailTokenObtainPairView, DeliveryContactViewSet
 
 # Создаем роутер и регистрируем наш ProductViewSet
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'cart', CartViewSet, basename='cart')
+router.register(r'contacts', DeliveryContactViewSet, basename='contacts')
 router.register(r'orders', OrderViewSet, basename='orders')
 
 urlpatterns = [
