@@ -1,10 +1,11 @@
 from django.shortcuts import render
-from rest_framework import permissions, status, generics
+from rest_framework import permissions, status, generics, viewsets
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from users.serializers import RegistrationSerializer, EmailTokenObtainPairSerializer
+from users.models import DeliveryContact
+from users.serializers import RegistrationSerializer, EmailTokenObtainPairSerializer, DeliveryContactSerializer
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -52,3 +53,16 @@ class EmailTokenObtainPairView(TokenObtainPairView):
     возвращает refresh и access
     """
     serializer_class = EmailTokenObtainPairSerializer
+
+
+class DeliveryContactViewSet(viewsets.ModelViewSet):
+    serializer_class = DeliveryContactSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # возвращаем только свои контакты
+        return DeliveryContact.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # сохраняем user автоматически
+        serializer.save(user=self.request.user)
