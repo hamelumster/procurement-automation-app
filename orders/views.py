@@ -46,21 +46,19 @@ class CartViewSet(viewsets.ViewSet):
 
         return Response(CartSerializer(cart).data, status=status.HTTP_201_CREATED)
 
-    @action(methods=['delete'], detail=False, url_path='items/')
-    def remove_item(self, request):
+    @action(methods=['delete'], detail=False, url_path=r'items/(?P<product_id>[^/.]+)')
+    def remove_item(self, request, product_id=None):
         """
-        DELETE /api/cart/items/
+        DELETE /api/cart/items/{product_id}/
         { "product_id": 1 }
-        -> удаляет товар из корзины
+        -> Удаляет один CartItem по его product_id
         """
-        serializer = AddCartItemSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
         cart = get_object_or_404(Cart, user=request.user)
         item = get_object_or_404(
             CartItem,
             cart=cart,
-            product_id=serializer.validated_data['product_id']
+            product_id=product_id
         )
         item.delete()
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
