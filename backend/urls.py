@@ -19,18 +19,24 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from orders.views import CartViewSet
 from products.views import ProductViewSet
 from users.views import RegisterAPIView, EmailTokenObtainPairView
 
 # Создаем роутер и регистрируем наш ProductViewSet
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='products')
+router.register(r'cart', CartViewSet, basename='cart')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Auth
     path('api/auth/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/register/', RegisterAPIView.as_view(), name='auth_register'),
     path('api/auth/login/', EmailTokenObtainPairView.as_view(), name='auth_login'),
+
+    # API
     path('api/', include(router.urls)),
 ]
