@@ -49,6 +49,12 @@ class AddCartItemSerializer(serializers.Serializer):
             raise serializers.ValidationError('Товар не найден')
         return pk
 
+    def validate(self, data):
+        product = Product.objects.get(pk=data['product_id'])
+        if data['quantity'] > product.quantity:
+            raise serializers.ValidationError('Недостаточно товара на складе')
+        return data
+
 
 class RemoveCartItemSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
