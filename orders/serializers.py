@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from orders.models import CartItem, Cart
+from orders.models import CartItem, Cart, OrderItem
 from products.models import Product
 from users.models import DeliveryContact
 
@@ -84,3 +84,22 @@ class ConfirmOrderSerializer(serializers.Serializer):
         if not DeliveryContact.objects.filter(pk=pk, user=user).exists():
             raise serializers.ValidationError('Контакт не найден')
         return pk
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source='product.name', read_only=True)
+    unit_price = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+    total_price = serializers.ReadOnlyField(source='get_total_price')
+
+    class Meta:
+        model = OrderItem
+        fields = (
+            'product',
+            'unit_price',
+            'quantity',
+            'total_price',
+        )
