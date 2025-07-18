@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
-from orders.models import CartItem, Cart, OrderItem
+from orders.models import CartItem, Cart, OrderItem, Order
 from products.models import Product
 from users.models import DeliveryContact
+from users.serializers import DeliveryContactSerializer
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -102,4 +103,27 @@ class OrderItemSerializer(serializers.ModelSerializer):
             'unit_price',
             'quantity',
             'total_price',
+        )
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    contact = DeliveryContactSerializer(read_only=True)
+    total_amount = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+    status = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = (
+            'id',
+            'items',
+            'contact',
+            'total_amount',
+            'status',
+            'created_at',
         )
