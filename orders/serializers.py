@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from orders.models import CartItem, Cart
 from products.models import Product
+from users.models import DeliveryContact
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -65,4 +66,21 @@ class RemoveCartItemSerializer(serializers.Serializer):
     def validate_product_id(self, pk):
         if not Product.objects.filter(pk=pk).exists():
             raise serializers.ValidationError('Товар не найден')
+        return pk
+
+
+class ConfirmOrderSerializer(serializers.Serializer):
+    cart_id = serializers.IntegerField()
+    contact_id = serializers.IntegerField()
+
+    def validate_cart_id(self, pk):
+        user = self.context['request'].user
+        if not Cart.objects.filter(pk=pk, user=user).exists():
+            raise serializers.ValidationError('Корзина не найдена')
+        return pk
+
+    def validate_contact_id(self, pk):
+        user = self.context['request'].user
+        if not DeliveryContact.objects.filter(pk=pk, user=user).exists():
+            raise serializers.ValidationError('Контакт не найден')
         return pk
