@@ -13,7 +13,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         max_digits=10,
         decimal_places=2,
         read_only=True)
-    total_price = serializers.SerializerMethodField()
+    total_price = serializers.ReadOnlyField(source='get_subtotal')
 
     class Meta:
         model = CartItem
@@ -25,9 +25,6 @@ class CartItemSerializer(serializers.ModelSerializer):
             'quantity',
             'total_price',
         ]
-
-    def get_total_price(self, obj):
-        return obj.quantity * obj.unit_price
 
 
 class CartSerializer(serializers.ModelSerializer):
