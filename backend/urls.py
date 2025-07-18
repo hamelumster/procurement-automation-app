@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from orders.views import CartViewSet
+from orders.views import CartViewSet, OrderViewSet
 from products.views import ProductViewSet
 from users.views import RegisterAPIView, EmailTokenObtainPairView
 
@@ -27,6 +27,7 @@ from users.views import RegisterAPIView, EmailTokenObtainPairView
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'cart', CartViewSet, basename='cart')
+router.register(r'orders', OrderViewSet, basename='orders')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
