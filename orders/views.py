@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.models import Cart, CartItem
+from orders.models import Cart, CartItem, Order, OrderItem
 from orders.serializers import CartSerializer, AddCartItemSerializer
 from products.models import Product
 
@@ -64,3 +64,40 @@ class CartViewSet(viewsets.ViewSet):
         )
         item.delete()
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
+
+
+class OrderViewSet(viewsets.GenericViewSet):
+    queryset = Order.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    @action(methods=['post'], detail=False, url_path='confirm')
+    def confirm(self, request):
+        # 1 Получаем корзину
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        if not cart.items.exists():
+            return Response({'detail': 'Корзина пуста'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2 Создаем заказ
+        order = Order.objects.create(
+            user=request.user,
+            status=Order.STATUS_NEW,
+            total_amount=0
+        )
+
+        # 3 Переносим из CartItem -> OrderItem
+        for cart_item in cart.items.all():
+            OrderItem.objects.create(
+                order=order,
+                product=cart_item.product,
+                quantity=cart_item.quantity,
+                unit_price=cart_item.unit_price
+            )
+
+        # 4 Пересчитываем общую сумму
+        order.calculate_total()
+
+        # 5 Очищаем корзину
+        cart.items.all().delete()
+
+        # 6 Здесь будет отправка email
+
