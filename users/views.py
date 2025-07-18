@@ -56,6 +56,14 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 
 
 class DeliveryContactViewSet(viewsets.ModelViewSet):
+    """
+    Список и создание контактов доставки для текущего пользователя.
+
+    list:
+        GET  /api/contacts/      — возвращает все сохраненные контакты.
+    create:
+        POST /api/contacts/      — создает новый контакт.
+    """
     serializer_class = DeliveryContactSerializer
     permission_classes = [permissions.IsAuthenticated]
 
