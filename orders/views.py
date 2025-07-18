@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from orders.models import Cart, CartItem, Order, OrderItem
-from orders.serializers import CartSerializer, AddCartItemSerializer
+from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer
 from products.models import Product
 
 
@@ -50,9 +50,22 @@ class CartViewSet(viewsets.ViewSet):
     def remove_item(self, request, product_id=None):
         """
         DELETE /api/cart/items/{product_id}/
-        { "product_id": 1 }
-        -> Удаляет один CartItem по его product_id
+
+        Body (JSON, необязательно):
+            { "quantity": <сколько убрать> }
+
+        Логика:
+          - если quantity не передан или quantity >= текущего количества —
+            полностью удаляем CartItem
+          - иначе уменьшаем item.quantity на указанное число
         """
+        data = {'product_id': product_id}
+        if isinstance(request.data, dict) and 'quantity' in request.data:
+            data['quantity'] = request.data['quantity']
+
+        serializer = RemoveCartItemSerializer(data={**request.data, 'product_id': product_id})
+        serializer.is_valid(raise_exception=True)
+        qty_to_remove = serializer.validated_data.get('quantity')
 
         cart = get_object_or_404(Cart, user=request.user)
         item = get_object_or_404(
@@ -60,7 +73,13 @@ class CartViewSet(viewsets.ViewSet):
             cart=cart,
             product_id=product_id
         )
-        item.delete()
+
+        if qty_to_remove is None or qty_to_remove >= item.quantity:
+            item.delete()
+        else:
+            item.quantity -= qty_to_remove
+            item.save(update_fields=['quantity'])
+
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
 
