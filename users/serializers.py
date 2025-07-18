@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from users.models import UserProfile
+from users.models import UserProfile, DeliveryContact
 
 User = get_user_model()
 
@@ -68,3 +68,21 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
+
+
+class DeliveryContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryContact
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'email',
+            'phone',
+            'city',
+            'street',
+            'house',
+            'building',
+            'apartment',
+        ]
