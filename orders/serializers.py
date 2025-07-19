@@ -120,6 +120,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'total_amount',
             'status',
             'created_at',
+            'updated_at',
         )
 
 
