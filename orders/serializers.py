@@ -121,3 +121,25 @@ class OrderSerializer(serializers.ModelSerializer):
             'status',
             'created_at',
         )
+
+
+class OrderStatusSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=Order.STATUS_CHOICES)
+
+    def validate(self, data):
+        order = self.context['order']
+        new_state = data['status']
+        old_state = order.status
+
+        allowed = {
+            Order.STATUS_NEW: {Order.STATUS_IN_PROGRESS, Order.STATUS_CANCELLED},
+            Order.STATUS_IN_PROGRESS: {Order.STATUS_SHIPPED, Order.STATUS_CANCELLED},
+            Order.STATUS_SHIPPED: {Order.STATUS_COMPLETED, Order.STATUS_CANCELLED},
+            Order.STATUS_COMPLETED: set(),
+            Order.STATUS_CANCELLED: set(),
+        }
+        if new_state not in allowed[old_state]:
+            raise serializers.ValidationError(
+                f"Невозможно перевести заказ в состояние {new_state}"
+            )
+        return data
