@@ -96,6 +96,9 @@ class OrderViewSet(mixins.ListModelMixin,
         GET  /api/orders/{pk}/   — детали одного заказа.
     confirm:
         POST /api/orders/confirm/ — оформление заказа на основе корзины и контакта.
+        POST /api/orders/{pk}/cancel/  — клиент (или админ) отменяет заказ
+    process:
+        PATCH /api/orders/{pk}/process/ — магазин/админ двигает статус дальше
     """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
