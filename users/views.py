@@ -1,3 +1,4 @@
+from django.db.models import ProtectedError
 from django.shortcuts import render
 from rest_framework import permissions, status, generics, viewsets
 from rest_framework.response import Response
@@ -63,6 +64,8 @@ class DeliveryContactViewSet(viewsets.ModelViewSet):
         GET  /api/contacts/      — возвращает все сохраненные контакты.
     create:
         POST /api/contacts/      — создает новый контакт.
+    delete:
+        DELETE /api/contacts/{pk}/   — удаляет контакт (если не привязан к заказам).
     """
     serializer_class = DeliveryContactSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -74,3 +77,17 @@ class DeliveryContactViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # сохраняем user автоматически
         serializer.save(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        contact = self.get_object()
+        try:
+            contact.delete()
+        except ProtectedError:
+            return Response(
+                {'detail': 'Невозможно удалить контакт — он уже использован в заказе'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(
+            {'detail': 'Контакт успешно удален'},
+            status=status.HTTP_204_NO_CONTENT
+        )
