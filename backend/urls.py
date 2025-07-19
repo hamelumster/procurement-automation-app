@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from orders.views import CartViewSet, OrderViewSet, OrderStatusUpdateAPIView
+from orders.views import CartViewSet, OrderViewSet
 from products.views import ProductViewSet
 from users.views import RegisterAPIView, EmailTokenObtainPairView, DeliveryContactViewSet
 
