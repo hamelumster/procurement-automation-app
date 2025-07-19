@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from orders.views import CartViewSet, OrderViewSet
+from orders.views import CartViewSet, OrderViewSet, OrderStatusUpdateAPIView
 from products.views import ProductViewSet
 from users.views import RegisterAPIView, EmailTokenObtainPairView, DeliveryContactViewSet
 
@@ -41,4 +41,5 @@ urlpatterns = [
 
     # API
     path('api/', include(router.urls)),
+    path('api/orders/<int:pk>/status/', OrderStatusUpdateAPIView.as_view(), name='order-status'),
 ]
