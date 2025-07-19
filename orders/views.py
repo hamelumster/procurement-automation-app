@@ -133,7 +133,7 @@ class OrderViewSet(mixins.ListModelMixin,
         # 3 Создаем заказ
         order = Order.objects.create(
             user=request.user,
-            contact=contact,
+            delivery_contact=contact,
             status=Order.STATUS_NEW,
             total_amount=0
         )
