@@ -162,38 +162,38 @@ class OrderViewSet(mixins.ListModelMixin,
             status=status.HTTP_201_CREATED
         )
 
+    @action(methods=['post'], detail=True, url_path='cancel')
+    def cancel(self, request, pk=None):
+        order = self.get_object()
+        profile = request.user.profile
 
-class OrderStatusUpdateAPIView(generics.UpdateAPIView):
-    """
-    PATCH /api/orders/{pk}/status/
-    Меняет статус заказа по правилам Allowed[старый -> новый]
-    """
-    queryset = Order.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class = OrderStatusSerializer
+        # Отменить может только клиент или админ
+        if not (profile.is_client or request.user.is_staff):
+            return Response({'detail': 'Недостаточно прав'}, status=status.HTTP_403_FORBIDDEN)
 
-    def get_object(self):
-        # Получаем только свой заказ
-        return get_object_or_404(
-            Order,
-            pk=self.kwargs['pk'],
-            user=self.request.user
+        if order.status in (Order.STATUS_CANCELLED, Order.STATUS_COMPLETED):
+            return Response({'detail': 'Нельзя отменить'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order.status = Order.STATUS_CANCELLED
+        order.save(update_fields=['status'])
+        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+
+    @action(methods=['patch'], detail=True, url_path='process')
+    def process(self, request, pk=None):
+        order = self.get_object()
+        profile = request.user.profile
+
+        # Обработать может только админ или поставщик
+        if not (profile.is_supplier or request.user.is_staff):
+            return Response({'detail': 'Недостаточно прав'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = OrderStatusSerializer(
+            data=request.data,
+            context={'order': order}
         )
-
-    def get_serializer_context(self):
-        ctx = super().get_serializer_context()
-        ctx['order'] = self.get_object()
-        return ctx
-
-    def patch(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        order = self.get_object()
         order.status = serializer.validated_data['status']
         order.save(update_fields=['status'])
 
-        return Response(
-            OrderSerializer(order, context={'request': request}).data,
-            status=status.HTTP_200_OK
-        )
+        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
