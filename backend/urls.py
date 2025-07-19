@@ -41,5 +41,4 @@ urlpatterns = [
 
     # API
     path('api/', include(router.urls)),
-    path('api/orders/<int:pk>/status/', OrderStatusUpdateAPIView.as_view(), name='order-status'),
 ]
