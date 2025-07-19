@@ -1,12 +1,12 @@
 from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets, status, mixins
+from rest_framework import viewsets, status, mixins, generics
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from orders.models import Cart, CartItem, Order, OrderItem
 from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer, ConfirmOrderSerializer, \
-    OrderSerializer
+    OrderSerializer, OrderStatusSerializer
 from products.models import Product
 from users.models import DeliveryContact
 
@@ -160,4 +160,40 @@ class OrderViewSet(mixins.ListModelMixin,
         return Response(
             out_serializer.data,
             status=status.HTTP_201_CREATED
+        )
+
+
+class OrderStatusUpdateAPIView(generics.UpdateAPIView):
+    """
+    PATCH /api/orders/{pk}/status/
+    Меняет статус заказа по правилам Allowed[старый -> новый]
+    """
+    queryset = Order.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderStatusSerializer
+
+    def get_object(self):
+        # Получаем только свой заказ
+        return get_object_or_404(
+            Order,
+            pk=self.kwargs['pk'],
+            user=self.request.user
+        )
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx['order'] = self.get_object()
+        return ctx
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        order = self.get_object()
+        order.status = serializer.validated_data['status']
+        order.save(update_fields=['status'])
+
+        return Response(
+            OrderSerializer(order, context={'request': request}).data,
+            status=status.HTTP_200_OK
         )
