@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from orders.models import Cart, CartItem, Order, OrderItem
-from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer
+from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer, ConfirmOrderSerializer, \
+    OrderSerializer
 from products.models import Product
+from users.models import DeliveryContact
 
 
 class CartViewSet(viewsets.ViewSet):
@@ -83,25 +85,60 @@ class CartViewSet(viewsets.ViewSet):
         return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
 
-class OrderViewSet(viewsets.GenericViewSet):
-    queryset = Order.objects.all()
+class OrderViewSet(mixins.ListModelMixin,
+                   mixins.RetrieveModelMixin,
+                   viewsets.GenericViewSet
+    ):
+    """
+    list:
+        GET  /api/orders/        — список заказов текущего пользователя.
+    retrieve:
+        GET  /api/orders/{pk}/   — детали одного заказа.
+    confirm:
+        POST /api/orders/confirm/ — оформление заказа на основе корзины и контакта.
+    """
+    serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # возвращаем только заказы, созданные этим пользователем
+        return Order.objects.filter(user=self.request.user)
 
     @action(methods=['post'], detail=False, url_path='confirm')
     def confirm(self, request):
-        # 1 Получаем корзину
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        if not cart.items.exists():
-            return Response({'detail': 'Корзина пуста'}, status=status.HTTP_400_BAD_REQUEST)
+        # 1 Валидируем входные данные: cart_id, contact_id
+        serializer = ConfirmOrderSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
 
-        # 2 Создаем заказ
+        cart_id = serializer.validated_data['cart_id']
+        contact_id = serializer.validated_data['contact_id']
+
+        # 2 Получаем корзину (гарантированно принадлежит текущему пользователю)
+        cart = get_object_or_404(Cart, pk=cart_id, user=request.user)
+        contact = get_object_or_404(
+            DeliveryContact,
+            pk=contact_id,
+            user=request.user
+        )
+
+        if not cart.items.exists():
+            return Response(
+                {'detail': 'Корзина пуста'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 3 Создаем заказ
         order = Order.objects.create(
             user=request.user,
+            contact=contact,
             status=Order.STATUS_NEW,
             total_amount=0
         )
 
-        # 3 Переносим из CartItem -> OrderItem
+        # 4 Переносим из CartItem -> OrderItem
         for cart_item in cart.items.all():
             OrderItem.objects.create(
                 order=order,
@@ -110,11 +147,17 @@ class OrderViewSet(viewsets.GenericViewSet):
                 unit_price=cart_item.unit_price
             )
 
-        # 4 Пересчитываем общую сумму
+        # 5 Пересчитываем общую сумму
         order.calculate_total()
 
-        # 5 Очищаем корзину
+        # 6 Очищаем корзину
         cart.items.all().delete()
 
-        # 6 Здесь будет отправка email
+        # 7 Здесь будет отправка email
+        # ...
 
+        out_serializer = OrderSerializer(order, context={'request': request})
+        return Response(
+            out_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
