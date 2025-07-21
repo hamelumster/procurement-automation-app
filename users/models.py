@@ -26,10 +26,11 @@ class UserProfile(models.Model):
                                       help_text='Дата и время создания профиля')
     updated_at = models.DateTimeField(auto_now=True,
                                       help_text='Дата и время последнего обновления профиля')
-
+    @property
     def is_client(self):
         return self.role == self.ROLE_CLIENT
 
+    @property
     def is_supplier(self):
         return self.role == self.ROLE_SUPPLIER
 
