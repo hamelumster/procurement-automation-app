@@ -102,6 +102,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(source='id', read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
     contact = DeliveryContactSerializer(read_only=True)
     total_amount = serializers.DecimalField(
@@ -115,7 +116,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
-            'id',
+            'order_id',
             'items',
             'contact',
             'total_amount',
