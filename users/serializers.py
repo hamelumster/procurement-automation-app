@@ -71,10 +71,11 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class DeliveryContactSerializer(serializers.ModelSerializer):
+    contact_id = serializers.IntegerField(source='id', read_only=True)
     class Meta:
         model = DeliveryContact
         fields = [
-            'id',
+            'contact_id',
             'first_name',
             'last_name',
             'middle_name',
