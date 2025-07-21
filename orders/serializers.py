@@ -84,6 +84,11 @@ class ConfirmOrderSerializer(serializers.Serializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.CharField(source='product.name', read_only=True)
+    shop = serializers.CharField(
+        source='product.shop.name',
+        read_only=True,
+        help_text='Название магазина'
+    )
     unit_price = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -94,6 +99,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = (
+            'shop',
             'product',
             'unit_price',
             'quantity',
