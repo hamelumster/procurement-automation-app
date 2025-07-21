@@ -28,12 +28,13 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
+    cart_id = serializers.IntegerField(source='id', read_only=True)
     items = CartItemSerializer(many=True, read_only=True)
     total = serializers.ReadOnlyField(source='get_total')
 
     class Meta:
         model = Cart
-        fields = ('id', 'items', 'total')
+        fields = ('cart_id', 'items', 'total')
 
 
 class AddCartItemSerializer(serializers.Serializer):
