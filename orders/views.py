@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status, mixins, generics
 from rest_framework.decorators import action
@@ -104,8 +105,33 @@ class OrderViewSet(mixins.ListModelMixin,
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # возвращаем только заказы, созданные этим пользователем
-        return Order.objects.filter(user=self.request.user)
+        user = self.request.user
+
+        # Админ видит все заказы
+        if user.is_staff:
+            return Order.objects.all()
+
+        # Клиенты – только свои заказы
+        try:
+            up = user.profile
+        except ObjectDoesNotExist:
+            return Order.objects.none()
+
+        if up.is_client:
+            return Order.objects.filter(user=user)
+
+        # Поставщики – только заказы с их товарами
+        try:
+            sp = user.supplier_profile
+        except ObjectDoesNotExist:
+            return Order.objects.none()
+
+        return Order.objects.filter(
+            items__product__shop__supplier=sp
+        ).distinct()
+
+        # Остальные - ничего
+        return Order.objects.none()
 
     @action(methods=['post'], detail=False, url_path='confirm')
     def confirm(self, request):
