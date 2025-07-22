@@ -18,7 +18,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
-            'product', # id товара
+            'product_id',
             'product_name',
             'shop',
             'unit_price',
