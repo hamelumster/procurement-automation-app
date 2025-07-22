@@ -1,12 +1,13 @@
 from rest_framework import serializers
 
-from orders.models import CartItem, Cart, OrderItem, Order
+from orders.models import CartItem, Cart, OrderItem, Order, ShopOrderItem, ShopOrder
 from products.models import Product
 from users.models import DeliveryContact
 from users.serializers import DeliveryContactSerializer
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.IntegerField(source='product.id', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     shop = serializers.CharField(source='product.shop.name', read_only=True)
     unit_price = serializers.DecimalField(
@@ -83,12 +84,12 @@ class ConfirmOrderSerializer(serializers.Serializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = serializers.CharField(source='product.name', read_only=True)
     shop = serializers.CharField(
         source='product.shop.name',
         read_only=True,
         help_text='Название магазина'
     )
+    product = serializers.CharField(source='product.name', read_only=True)
     unit_price = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -107,28 +108,79 @@ class OrderItemSerializer(serializers.ModelSerializer):
         )
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    order_id = serializers.IntegerField(source='id', read_only=True)
-    items = OrderItemSerializer(many=True, read_only=True)
-    contact = DeliveryContactSerializer(read_only=True)
-    total_amount = serializers.DecimalField(
+class ShopOrderItemSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source='product.name', read_only=True)
+    unit_price = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
         read_only=True
     )
+    quantity = serializers.IntegerField(read_only=True)
+    item_total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ShopOrderItem
+        fields = ('product', 'unit_price', 'quantity', 'item_total_price')
+
+    def get_item_total_price(self, obj):
+        return obj.quantity * obj.unit_price
+
+
+class ShopOrderSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(source='order.id', read_only=True)
+    shop_id = serializers.IntegerField(source='shop.id', read_only=True)
+    shop_order_id = serializers.IntegerField(source='id', read_only=True)
+    shop = serializers.CharField(source='shop.name', read_only=True)
+    status_from_shop = serializers.CharField(source='status', read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    suborder_total_amount = serializers.DecimalField(
+                                source='total_amount',
+                                max_digits=12,
+                                decimal_places=2,
+                                read_only=True
+                            )
+    items = ShopOrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ShopOrder
+        fields = (
+            'order_id',
+            'shop_order_id',
+            'shop_id',
+            'shop',
+            'status_from_shop',
+            'updated_at',
+            'suborder_total_amount',
+            'items',
+        )
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(source='id', read_only=True)
     status = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
+    # updated_at = serializers.DateTimeField(read_only=True)
+    order_total_amount = serializers.DecimalField(
+        source='total_amount',
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+    suborders = ShopOrderSerializer(
+        source='shop_orders',
+        many=True,
+        read_only=True
+    )
 
     class Meta:
         model = Order
         fields = (
             'order_id',
-            'items',
-            'contact',
-            'total_amount',
             'status',
             'created_at',
-            'updated_at',
+            # 'updated_at',
+            'order_total_amount',
+            'suborders',
         )
 
 
@@ -152,3 +204,10 @@ class OrderStatusSerializer(serializers.Serializer):
                 f"Невозможно перевести заказ в состояние {new_state}"
             )
         return data
+
+
+class ShopOrderStatusSerializer(serializers.Serializer):
+    """
+    Для смены статуса конкретного ShopOrder.
+    """
+    status = serializers.ChoiceField(choices=ShopOrder.STATUS_CHOICES)
