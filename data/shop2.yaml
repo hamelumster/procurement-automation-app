@@ -1,0 +1,72 @@
+shop: Три смартфона
+categories:
+  - id: 50
+    name: Смартфоны
+  - id: 60
+    name: Чехлы
+  - id: 70
+    name: Наушники
+
+goods:
+  - id: 1001001
+    category: 50
+    model: samsung/galaxy-s21
+    name: "Смартфон Samsung Galaxy S21 128GB (фантазия)"
+    price: 70000
+    price_rrc: 74900
+    quantity: 10
+    parameters:
+      "Диагональ (дюйм)": 6.2
+      "Разрешение (пикс)": 2400x1080
+      "Встроенная память (Гб)": 128
+      "Цвет": фантазия
+
+  - id: 1001002
+    category: 50
+    model: xiaomi/redmi-note-10
+    name: "Смартфон Xiaomi Redmi Note 10 64GB (сиреневый)"
+    price: 20000
+    price_rrc: 21990
+    quantity: 15
+    parameters:
+      "Диагональ (дюйм)": 6.5
+      "Разрешение (пикс)": 2400x1080
+      "Встроенная память (Гб)": 64
+      "Цвет": сиреневый
+
+  - id: 1002001
+    category: 60
+    model: samsung/galaxy-s21-case
+    name: "Чехол силиконовый для Samsung Galaxy S21 (черный)"
+    price: 1500
+    price_rrc: 1990
+    quantity: 30
+    parameters:
+      "Материал": силикон
+      "Цвет": черный
+
+  - id: 1003001
+    category: 70
+    model: sony/wf-1000xm4
+    name: "Беспроводные наушники Sony WF-1000XM4"
+    price: 15000
+    price_rrc: 17990
+    quantity: 8
+    parameters:
+      "Тип": вкладыши
+      "Шумоподавление": активное
+      "Время работы (ч)": 8
+      "Цвет": черный
+
+  - id: 1003002
+    category: 70
+    model: apple/airpods-pro
+    name: "Наушники Apple AirPods Pro"
+    price: 18000
+    price_rrc: 19990
+    quantity: 12
+    parameters:
+      "Тип": вкладыши
+      "Шумоподавление": активное
+      "Время работы (ч)": 4.5
+      "Цвет": белый
