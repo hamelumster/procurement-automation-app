@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.models import DeliveryContact
 from users.serializers import RegistrationSerializer, EmailTokenObtainPairSerializer, DeliveryContactSerializer
+from users.tasks import send_welcome_email
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -34,7 +35,8 @@ class RegisterAPIView(generics.CreateAPIView):
         # 2 Создаем пользователя + профиль
         user = serializer.save()
 
-        # 3 Генерируем токен
+        # 3 Генерируем токен и отправляем приветственный email
+        send_welcome_email.delay(user.id)
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
 
