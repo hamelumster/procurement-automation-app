@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status, mixins, generics
@@ -5,9 +7,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.models import Cart, CartItem, Order, OrderItem
+from orders.models import Cart, CartItem, Order, OrderItem, ShopOrder, ShopOrderItem
 from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer, ConfirmOrderSerializer, \
-    OrderSerializer, OrderStatusSerializer
+    OrderSerializer, OrderStatusSerializer, ShopOrderStatusSerializer, ShopOrderSerializer
 from products.models import Product
 from users.models import DeliveryContact
 
@@ -92,137 +94,169 @@ class OrderViewSet(mixins.ListModelMixin,
     ):
     """
     list:
-        GET  /api/orders/        — список заказов текущего пользователя.
+        GET  /api/orders/        — список всех заказов клиента (или всех для admin).
     retrieve:
         GET  /api/orders/{pk}/   — детали одного заказа.
     confirm:
-        POST /api/orders/confirm/ — оформление заказа на основе корзины и контакта.
-        POST /api/orders/{pk}/cancel/  — клиент (или админ) отменяет заказ
-    process:
-        PATCH /api/orders/{pk}/process/ — магазин/админ двигает статус дальше
+        POST /api/orders/confirm/ — оформить корзину в Order + ShopOrder.
     """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-
-        # Админ видит все заказы
         if user.is_staff:
             return Order.objects.all()
+        return Order.objects.filter(user=user)
 
-        # Клиенты – только свои заказы
-        try:
-            up = user.profile
-        except ObjectDoesNotExist:
-            return Order.objects.none()
-
-        if up.is_client:
-            return Order.objects.filter(user=user)
-
-        # Поставщики – только заказы с их товарами
-        try:
-            sp = user.supplier_profile
-        except ObjectDoesNotExist:
-            return Order.objects.none()
-
-        return Order.objects.filter(
-            items__product__shop__supplier=sp
-        ).distinct()
-
-        # Остальные - ничего
-        return Order.objects.none()
-
-    @action(methods=['post'], detail=False, url_path='confirm')
+    @action(detail=False, methods=['post'], url_path='confirm')
     def confirm(self, request):
-        # 1 Валидируем входные данные: cart_id, contact_id
-        serializer = ConfirmOrderSerializer(
-            data=request.data,
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
+        """
+        POST /api/orders/confirm/
+        {
+          "cart_id": <int>,
+          "contact_id": <int>
+        }
+        — создаёт Order и разбивает его на ShopOrder для каждого магазина.
+        """
+        cart_id = request.data.get('cart_id')
+        contact_id = request.data.get('contact_id')
 
-        cart_id = serializer.validated_data['cart_id']
-        contact_id = serializer.validated_data['contact_id']
-
-        # 2 Получаем корзину (гарантированно принадлежит текущему пользователю)
         cart = get_object_or_404(Cart, pk=cart_id, user=request.user)
-        contact = get_object_or_404(
-            DeliveryContact,
-            pk=contact_id,
-            user=request.user
-        )
+        contact = get_object_or_404(DeliveryContact,
+                                    pk=contact_id,
+                                    user=request.user)
 
         if not cart.items.exists():
-            return Response(
-                {'detail': 'Корзина пуста'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'detail': 'Корзина пуста'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        # 3 Создаем заказ
-        order = Order.objects.create(
-            user=request.user,
-            delivery_contact=contact,
-            status=Order.STATUS_NEW,
-            total_amount=0
-        )
+        # 1) заводим общий Order
+        order = Order.objects.create(user=request.user,
+                                     delivery_contact=contact,
+                                     status=Order.STATUS_NEW,
+                                     total_amount=0)
 
-        # 4 Переносим из CartItem -> OrderItem
-        for cart_item in cart.items.all():
-            OrderItem.objects.create(
+        # 2) группируем CartItem по shop
+        by_shop = defaultdict(list)
+        for ci in cart.items.select_related('product__shop'):
+            by_shop[ci.product.shop].append(ci)
+
+        # 3) по каждой группе создаём ShopOrder + ShopOrderItem’ы
+        for shop, items in by_shop.items():
+            so = ShopOrder.objects.create(
                 order=order,
-                product=cart_item.product,
-                quantity=cart_item.quantity,
-                unit_price=cart_item.unit_price
+                shop=shop,
+                status=ShopOrder.STATUS_NEW,
+                total_amount=0
             )
+            for ci in items:
+                ShopOrderItem.objects.create(
+                    shop_order=so,
+                    product=ci.product,
+                    quantity=ci.quantity,
+                    unit_price=ci.unit_price
+                )
+            so.calculate_total()
 
-        # 5 Пересчитываем общую сумму
+        # 4) пересчитываем итоговую сумму общего Order
         order.calculate_total()
 
-        # 6 Очищаем корзину
+        # 5) очищаем корзину
         cart.items.all().delete()
 
-        # 7 Здесь будет отправка email
-        # ...
-
-        out_serializer = OrderSerializer(order, context={'request': request})
-        return Response(
-            out_serializer.data,
-            status=status.HTTP_201_CREATED
-        )
+        return Response(OrderSerializer(order).data,
+                        status=status.HTTP_201_CREATED)
 
     @action(methods=['post'], detail=True, url_path='cancel')
     def cancel(self, request, pk=None):
+        """
+        POST /api/orders/{pk}/cancel/
+        Отменить заказ может только автор заказа или админ.
+        """
         order = self.get_object()
-        profile = request.user.profile
 
-        # Отменить может только клиент или админ
-        if not (profile.is_client or request.user.is_staff):
-            return Response({'detail': 'Недостаточно прав'}, status=status.HTTP_403_FORBIDDEN)
+        # только клиент‑автор или is_staff
+        if not (request.user.is_staff or order.user == request.user):
+            return Response({'detail': 'Недостаточно прав'},
+                            status=status.HTTP_403_FORBIDDEN)
 
+        # если уже отменён или завершён
         if order.status in (Order.STATUS_CANCELLED, Order.STATUS_COMPLETED):
-            return Response({'detail': 'Нельзя отменить'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Нельзя отменить'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        order.status = Order.STATUS_CANCELLED
-        order.save(update_fields=['status'])
-        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+        # ставим статус cancelled
+        order.cancel()  # предполагается, что в модели у вас есть метод cancel()
 
-    @action(methods=['patch'], detail=True, url_path='process')
+        # отменяем все связанные ShopOrder
+        ShopOrder.objects.filter(order=order) \
+            .update(status=ShopOrder.STATUS_CANCELLED)
+
+        return Response(self.get_serializer(order).data,
+                        status=status.HTTP_200_OK)
+
+
+class ShopOrderViewSet(mixins.ListModelMixin,
+                       mixins.RetrieveModelMixin,
+                       viewsets.GenericViewSet):
+    """
+    list:
+        GET  /api/shop-orders/        — список подзаказов магазина.
+    retrieve:
+        GET  /api/shop-orders/{pk}/   — детали одного подзаказа.
+    process:
+        PATCH /api/shop-orders/{pk}/process/ — сменить статус подзаказа.
+    """
+    serializer_class = ShopOrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # админ видит все
+        if user.is_staff:
+            return ShopOrder.objects.all()
+
+        # поставщики — только свои ShopOrder’ы
+        try:
+            sp = user.supplier_profile
+        except ObjectDoesNotExist:
+            return ShopOrder.objects.none()
+
+        return ShopOrder.objects.filter(shop__supplier=sp)
+
+    @action(detail=True, methods=['patch'], url_path='process')
     def process(self, request, pk=None):
-        order = self.get_object()
-        profile = request.user.profile
+        """
+        PATCH /api/shop-orders/{pk}/process/
+        { "status": "<new_status>" }
+        — смена статуса этого ShopOrder.
+        """
+        shop_order = self.get_object()
 
-        # Обработать может только админ или поставщик
-        if not (profile.is_supplier or request.user.is_staff):
-            return Response({'detail': 'Недостаточно прав'}, status=status.HTTP_403_FORBIDDEN)
+        parent_order = shop_order.order
+        if parent_order.status in (parent_order.STATUS_CANCELLED,
+                                   parent_order.STATUS_COMPLETED):
+            return Response(
+                {'detail': 'Нельзя менять статус подзаказа — заказ уже закрыт.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        serializer = OrderStatusSerializer(
+        # Проверка прав
+        profile = request.user.supplier_profile
+        if shop_order.shop.supplier != profile and not request.user.is_staff:
+            return Response({'detail': 'Недостаточно прав'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        serializer = ShopOrderStatusSerializer(
             data=request.data,
-            context={'order': order}
+            context={'shop_order': shop_order}
         )
         serializer.is_valid(raise_exception=True)
 
-        order.status = serializer.validated_data['status']
-        order.save(update_fields=['status'])
+        shop_order.status = serializer.validated_data['status']
+        shop_order.save(update_fields=['status'])
 
-        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+        return Response(self.get_serializer(shop_order).data,
+                        status=status.HTTP_200_OK)
