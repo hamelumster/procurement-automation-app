@@ -32,6 +32,7 @@ services:
     depends_on:
       - db
       - redis
+    env_file: .env
     environment:
       - "DJANGO_SETTINGS_MODULE=backend.settings"
       - "CELERY_BROKER_URL=redis://redis:6379/0"
