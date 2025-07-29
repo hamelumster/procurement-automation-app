@@ -2,56 +2,72 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <title>Заказ №{{ order.id }} принят</title>
+  <title>Подтверждение заказа №{{ order.id }}</title>
 </head>
 <body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:20px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background:#f4f4f4;padding:20px;">
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0"
-               style="background:#ffffff;border-radius:8px;overflow:hidden;">
-          <!-- header -->
+               style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+
+          <!-- HEADER -->
           <tr>
             <td style="background:#28a745;padding:30px;text-align:center;">
               <h1 style="color:#ffffff;margin:0;font-size:24px;">
-                Заказ №{{ order.id }} принят!
+                Ваш заказ №{{ order.id }} принят!
               </h1>
             </td>
           </tr>
-          <!-- body -->
+
+          <!-- BODY -->
           <tr>
             <td style="padding:30px;color:#333333;">
-              <p style="font-size:16px;line-height:1.5;">
-                Привет, {{ order.delivery_contact.first_name }}!
+
+              <!-- Приветствие -->
+              <p style="font-size:16px;line-height:1.5;margin-bottom:20px;">
+                Привет, <strong>{{ order.delivery_contact.first_name }}</strong>!
               </p>
-              <p style="font-size:16px;line-height:1.5;">
+
+              <!-- Информация о заказе -->
+              <p style="font-size:16px;line-height:1.5;margin-bottom:20px;">
                 Спасибо за ваш заказ. Ниже — его детали:
               </p>
 
+              <!-- Контактная информация -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="margin-bottom:20px;font-size:14px;line-height:1.4;">
+                <tr><td><strong>Email:</strong> <a href="mailto:{{ order.delivery_contact.email }}" style="color:#28a745;text-decoration:none;">{{ order.delivery_contact.email }}</a></td></tr>
+                <tr><td><strong>Телефон:</strong> {{ order.delivery_contact.phone }}</td></tr>
+              </table>
+
+              <!-- Таблица товаров -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
                      style="border-collapse:collapse;font-size:16px;line-height:1.5;margin-bottom:20px;">
                 <thead>
                   <tr>
-                    <th align="left" style="border-bottom:1px solid #ddd;padding:8px;">Товар</th>
-                    <th align="center" style="border-bottom:1px solid #ddd;padding:8px;">Кол-во</th>
-                    <th align="right" style="border-bottom:1px solid #ddd;padding:8px;">Цена</th>
+                    <th align="left" style="border-bottom:2px solid #eee;padding:8px;">Магазин</th>
+                    <th align="left" style="border-bottom:2px solid #eee;padding:8px;">Товар</th>
+                    <th align="center" style="border-bottom:2px solid #eee;padding:8px;">Кол‑во</th>
+                    <th align="right" style="border-bottom:2px solid #eee;padding:8px;">Сумма</th>
                   </tr>
                 </thead>
                 <tbody>
                   {% for shop_order in order.shop_orders.all %}
+                  <!-- Заголовок магазина -->
                   <tr>
-                    <td colspan="3" style="background:#f9f9f9;padding:8px;">
-                      <strong>Магазин: {{ shop_order.shop.name }}</strong>
+                    <td colspan="4" style="background:#f9f9f9;padding:10px 8px;font-weight:bold;">
+                      {{ shop_order.shop.name }}
                     </td>
                   </tr>
                   {% for item in shop_order.items.all %}
                   <tr>
+                    <td></td>
                     <td style="padding:8px;border-bottom:1px solid #eee;">{{ item.product.name }}</td>
-                    <td align="center" style="padding:8px;border-bottom:1px solid #eee;">
-                      {{ item.quantity }}
-                    </td>
+                    <td align="center" style="padding:8px;border-bottom:1px solid #eee;">{{ item.quantity }}</td>
                     <td align="right" style="padding:8px;border-bottom:1px solid #eee;">
-                      {{ item.total_price }}
+                      {{ item.total_price }} ₽
                     </td>
                   </tr>
                   {% endfor %}
@@ -59,53 +75,54 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan="2" align="right"
-                        style="padding:8px;border-top:2px solid #ddd;font-weight:bold;">
-                      Итого:
+                    <td colspan="3" align="right" style="padding:12px;border-top:2px solid #ddd;font-weight:bold;">
+                      Итог к оплате:
                     </td>
-                    <td align="right"
-                        style="padding:8px;border-top:2px solid #ddd;font-weight:bold;">
-                      {{ order.get_total_cost }}
+                    <td align="right" style="padding:12px;border-top:2px solid #ddd;font-weight:bold;">
+                      {{ order.order_total_amount }} ₽
                     </td>
                   </tr>
                 </tfoot>
               </table>
 
-              <p style="font-size:16px;line-height:1.5;">
-                Адрес доставки:<br>
+              <!-- Адрес доставки -->
+              <p style="font-size:16px;line-height:1.5;margin-bottom:20px;">
+                <strong>Адрес доставки:</strong><br>
                 {{ order.delivery_contact.city }}, ул. {{ order.delivery_contact.street }}, д. {{ order.delivery_contact.house }}
                 {% if order.delivery_contact.building %}, корп. {{ order.delivery_contact.building }}{% endif %}
                 {% if order.delivery_contact.apartment %}, кв. {{ order.delivery_contact.apartment }}{% endif %}
               </p>
 
-              <p style="font-size:16px;line-height:1.5;">
-                Чтобы узнать статус заказа, перейдите в личный кабинет:
-              </p>
-              <p style="text-align:center;margin:20px 0;">
+              <!-- Ссылка на заказ -->
+              <p style="text-align:center;margin:30px 0;">
                 <a href="http://localhost:8000/api/orders/{{ order.id }}"
                    style="background:#28a745;color:#ffffff;
                           padding:12px 20px;text-decoration:none;
                           border-radius:4px;display:inline-block;">
-                  Перейти в личный кабинет
+                  Посмотреть мой заказ
                 </a>
               </p>
 
+              <!-- Подвал письма -->
               <p style="font-size:14px;color:#777777;line-height:1.4;">
-                Если у вас возникнут вопросы, ответьте на это письмо.
+                Если у вас возникнут вопросы — просто ответьте на это письмо.
               </p>
               <p style="font-size:14px;color:#777777;line-height:1.4;">
                 С уважением,<br>
                 Команда Сервиса Автоматизации Закупок
               </p>
+
             </td>
           </tr>
-          <!-- footer -->
+
+          <!-- FOOTER -->
           <tr>
             <td style="background:#f0f0f0;padding:20px;text-align:center;
                        font-size:12px;color:#888888;">
               © 2025 Сервис Автоматизации Закупок. Все права защищены.
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
