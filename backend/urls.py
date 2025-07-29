@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from orders.views import CartViewSet, OrderViewSet, ShopOrderViewSet
 from products.views import ProductViewSet
+from shops.views import SupplierFeedUpload
 from users.views import RegisterAPIView, EmailTokenObtainPairView, DeliveryContactViewSet
 
 # Создаем роутер и регистрируем наш ProductViewSet
@@ -42,4 +43,7 @@ urlpatterns = [
 
     # API
     path('api/', include(router.urls)),
+
+    # For suppliers: upload file
+    path('api/suppliers/upload-feed/', SupplierFeedUpload.as_view(), name='supplier_feed_upload'),
 ]
