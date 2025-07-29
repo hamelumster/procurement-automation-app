@@ -1,4 +1,6 @@
-from products.models import Category
+from django.core.exceptions import ObjectDoesNotExist
+
+from products.models import Category, Product
 from shops.models import Shop
 from users.models import SupplierProfile
 
@@ -32,5 +34,27 @@ class ShopImportService:
             else:
                 self.updated_cats += 1
 
-
-
+    def _import_products(self, shop):
+        for item in self.shop_data.get('goods', []):
+            try:
+                category = Category.objects.get(external_id=item.get('category_id'))
+            except ObjectDoesNotExist:
+                continue
+            product, created = Product.objects.update_or_create(
+                external_id=item.get('id'),
+                defaults={
+                    'category': category,
+                    'shop': shop,
+                    'model': item['model'],
+                    'name': item['name'],
+                    'description': item.get('description', ''),
+                    'characteristics': item.get('parameters', {}),
+                    'price': item['price'],
+                    'price_rrc': item['price_rrc'],
+                    'quantity': item['quantity'],
+                }
+            )
+            if created:
+                self.created_products += 1
+            else:
+                self.updated_products += 1
