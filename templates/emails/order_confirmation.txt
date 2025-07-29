@@ -1,0 +1,32 @@
+Привет, {{ order.delivery_contact.first_name }}!
+
+Ваш заказ №{{ order.id }} успешно принят.
+
+Контактная информация:
+Email: {{ order.delivery_contact.email }}
+Телефон: {{ order.delivery_contact.phone }}
+
+Состав заказа:
+{% for shop_order in order.shop_orders.all %}
+Магазин: {{ shop_order.shop.name }}
+{% for item in shop_order.items.all %}
+  – {{ item.product.name }} × {{ item.quantity }}: {{ item.total_price }}
+{% endfor %}
+{% endfor %}
+
+Итого к оплате: {{ order.get_total_cost }}
+
+Адрес доставки:
+{{ order.delivery_contact.city }},
+ул. {{ order.delivery_contact.street }},
+д. {{ order.delivery_contact.house }}{% if order.delivery_contact.building %},
+корп. {{ order.delivery_contact.building }}{% endif %}{% if order.delivery_contact.apartment %},
+кв. {{ order.delivery_contact.apartment }}{% endif %}
+
+Вы можете отслеживать статус заказа в личном кабинете:
+http://localhost:8000/api/orders/
+
+Если появятся вопросы — просто ответьте на это письмо.
+
+С уважением,
+Команда Сервиса Автоматизации Закупок
