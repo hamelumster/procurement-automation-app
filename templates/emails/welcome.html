@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Добро пожаловать!</title>
+</head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="background:#28a745;padding:30px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:24px;">Добро пожаловать в Сервис Автоматизации Закупок!</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px;color:#333333;">
+              <p style="font-size:16px;line-height:1.5;">Привет, {{ user.first_name }}!</p>
+              <p style="font-size:16px;line-height:1.5;">
+                Спасибо, что зарегистрировались на нашем сервисе. Теперь вы можете:
+              </p>
+              <ul style="font-size:16px;line-height:1.5;">
+                <li>Просматривать каталог товаров</li>
+                <li>Добавлять товары в корзину</li>
+                <li>Оформлять заказы и отслеживать их статус</li>
+              </ul>
+              <p style="text-align:center;margin:30px 0;">
+                <a href="{{ frontend_url }}/login/"
+                   style="background:#28a745;color:#ffffff;padding:12px 20px;text-decoration:none;border-radius:4px;display:inline-block;">
+                  Войти в личный кабинет
+                </a>
+              </p>
+              <p style="font-size:14px;color:#777777;line-height:1.4;">
+                Если у вас возникнут вопросы, просто ответьте на это письмо.
+              </p>
+              <p style="font-size:14px;color:#777777;line-height:1.4;">
+                С уважением,<br>
+                Команда Сервиса Автоматизации Закупок
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f0f0f0;padding:20px;text-align:center;font-size:12px;color:#888888;">
+              © 2025 Сервис Автоматизации Закупок. Все права защищены.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
