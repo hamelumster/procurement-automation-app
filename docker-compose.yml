@@ -50,5 +50,7 @@ services:
       db:
         condition: service_healthy
 
+    env_file: .env
+
 volumes:
   db_data:
