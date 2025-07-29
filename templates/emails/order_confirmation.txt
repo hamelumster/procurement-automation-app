@@ -14,7 +14,7 @@ Email: {{ order.delivery_contact.email }}
 {% endfor %}
 {% endfor %}
 
-Итого к оплате: {{ order.get_total_cost }}
+Итого к оплате: {{ order.order_total_amount }}
 
 Адрес доставки:
 {{ order.delivery_contact.city }},
