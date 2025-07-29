@@ -22,7 +22,7 @@ def send_welcome_email(user_id):
     send_mail(
         subject,
         text_body,
-        settings.DEFAULT_FROM_EMAIL,
+        settings.EMAIL_HOST_USER,
         [user.email],
         html_message=html_body,
         fail_silently=False,
