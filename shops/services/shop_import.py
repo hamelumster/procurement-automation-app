@@ -1,3 +1,4 @@
+from products.models import Category
 from shops.models import Shop
 from users.models import SupplierProfile
 
@@ -19,4 +20,17 @@ class ShopImportService:
             defaults={'description': name, 'is_active': True}
         )
         return shop
+
+    def _import_categories(self):
+        for cat in self.shop_data.get('categories', []):
+            obj, created = Category.objects.get_or_create(
+                external_id=cat.get('id'),
+                defaults={'name': cat.get('name')}
+            )
+            if created:
+                self.created_cats += 1
+            else:
+                self.updated_cats += 1
+
+
 
