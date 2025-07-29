@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Заказ №{{ order.id }} принят</title>
+</head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f4f4f4;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:20px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+               style="background:#ffffff;border-radius:8px;overflow:hidden;">
+          <!-- header -->
+          <tr>
+            <td style="background:#28a745;padding:30px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:24px;">
+                Заказ №{{ order.id }} принят!
+              </h1>
+            </td>
+          </tr>
+          <!-- body -->
+          <tr>
+            <td style="padding:30px;color:#333333;">
+              <p style="font-size:16px;line-height:1.5;">
+                Привет, {{ order.delivery_contact.first_name }}!
+              </p>
+              <p style="font-size:16px;line-height:1.5;">
+                Спасибо за ваш заказ. Ниже — его детали:
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                     style="border-collapse:collapse;font-size:16px;line-height:1.5;margin-bottom:20px;">
+                <thead>
+                  <tr>
+                    <th align="left" style="border-bottom:1px solid #ddd;padding:8px;">Товар</th>
+                    <th align="center" style="border-bottom:1px solid #ddd;padding:8px;">Кол-во</th>
+                    <th align="right" style="border-bottom:1px solid #ddd;padding:8px;">Цена</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for shop_order in order.shop_orders.all %}
+                  <tr>
+                    <td colspan="3" style="background:#f9f9f9;padding:8px;">
+                      <strong>Магазин: {{ shop_order.shop.name }}</strong>
+                    </td>
+                  </tr>
+                  {% for item in shop_order.items.all %}
+                  <tr>
+                    <td style="padding:8px;border-bottom:1px solid #eee;">{{ item.product.name }}</td>
+                    <td align="center" style="padding:8px;border-bottom:1px solid #eee;">
+                      {{ item.quantity }}
+                    </td>
+                    <td align="right" style="padding:8px;border-bottom:1px solid #eee;">
+                      {{ item.total_price }}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="2" align="right"
+                        style="padding:8px;border-top:2px solid #ddd;font-weight:bold;">
+                      Итого:
+                    </td>
+                    <td align="right"
+                        style="padding:8px;border-top:2px solid #ddd;font-weight:bold;">
+                      {{ order.get_total_cost }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <p style="font-size:16px;line-height:1.5;">
+                Адрес доставки:<br>
+                {{ order.delivery_contact.city }}, ул. {{ order.delivery_contact.street }}, д. {{ order.delivery_contact.house }}
+                {% if order.delivery_contact.building %}, корп. {{ order.delivery_contact.building }}{% endif %}
+                {% if order.delivery_contact.apartment %}, кв. {{ order.delivery_contact.apartment }}{% endif %}
+              </p>
+
+              <p style="font-size:16px;line-height:1.5;">
+                Чтобы узнать статус заказа, перейдите в личный кабинет:
+              </p>
+              <p style="text-align:center;margin:20px 0;">
+                <a href="http://localhost:8000/api/orders/{{ order.id }}"
+                   style="background:#28a745;color:#ffffff;
+                          padding:12px 20px;text-decoration:none;
+                          border-radius:4px;display:inline-block;">
+                  Перейти в личный кабинет
+                </a>
+              </p>
+
+              <p style="font-size:14px;color:#777777;line-height:1.4;">
+                Если у вас возникнут вопросы, ответьте на это письмо.
+              </p>
+              <p style="font-size:14px;color:#777777;line-height:1.4;">
+                С уважением,<br>
+                Команда Сервиса Автоматизации Закупок
+              </p>
+            </td>
+          </tr>
+          <!-- footer -->
+          <tr>
+            <td style="background:#f0f0f0;padding:20px;text-align:center;
+                       font-size:12px;color:#888888;">
+              © 2025 Сервис Автоматизации Закупок. Все права защищены.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
