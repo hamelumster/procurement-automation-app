@@ -12,6 +12,7 @@ from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCart
     OrderSerializer, OrderStatusSerializer, ShopOrderStatusSerializer, ShopOrderSerializer
 from products.models import Product
 from users.models import DeliveryContact
+from users.tasks import send_order_confirmation_email
 
 
 class CartViewSet(viewsets.ViewSet):
@@ -161,6 +162,9 @@ class OrderViewSet(mixins.ListModelMixin,
 
         # 4) пересчитываем итоговую сумму общего Order
         order.calculate_total()
+
+        # 5) Отправляем email с подтверждением заказа
+        send_order_confirmation_email.delay(order.id)
 
         # 5) очищаем корзину
         cart.items.all().delete()
