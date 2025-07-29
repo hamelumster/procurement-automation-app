@@ -10,11 +10,11 @@ Email: {{ order.delivery_contact.email }}
 {% for shop_order in order.shop_orders.all %}
 Магазин: {{ shop_order.shop.name }}
 {% for item in shop_order.items.all %}
-  – {{ item.product.name }} × {{ item.quantity }}: {{ item.total_price }}
+  – {{ item.product.name }} × {{ item.quantity }} шт. по {{ item.unit_price }} ₽ = {{ item.get_total_price }} ₽
 {% endfor %}
 {% endfor %}
 
-Итого к оплате: {{ order.order_total_amount }}
+Итого: {{ order.total_amount }} ₽
 
 Адрес доставки:
 {{ order.delivery_contact.city }},
@@ -23,10 +23,10 @@ Email: {{ order.delivery_contact.email }}
 корп. {{ order.delivery_contact.building }}{% endif %}{% if order.delivery_contact.apartment %},
 кв. {{ order.delivery_contact.apartment }}{% endif %}
 
-Вы можете отслеживать статус заказа в личном кабинете:
-http://localhost:8000/api/orders/
+Чтобы отслеживать статус заказа, перейдите по ссылке:
+http://localhost:8000/api/orders/{{ order.id }}
 
 Если появятся вопросы — просто ответьте на это письмо.
 
-С уважением,
+С Уважением,
 Команда Сервиса Автоматизации Закупок
