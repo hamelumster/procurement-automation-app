@@ -58,3 +58,14 @@ class ShopImportService:
                 self.created_products += 1
             else:
                 self.updated_products += 1
+
+    def run(self):
+        shop = self._get_or_create_shop()
+        self._import_categories()
+        self._import_products(shop)
+        return {
+            'created_categories': self.created_cats,
+            'updated_categories': self.updated_cats,
+            'created_products': self.created_products,
+            'updated_products': self.updated_products,
+        }
