@@ -86,6 +86,24 @@ class ConfirmOrderSerializer(serializers.Serializer):
             raise serializers.ValidationError('Контакт не найден')
         return pk
 
+    def validate(self, data):
+        """
+        Блокируем подтверждение, если в корзине есть товары
+        из неактивного магазина.
+        """
+        user = self.context['request'].user
+        cart = Cart.objects.filter(pk=data['cart_id'], user=user).first()
+
+        if not cart:
+            raise serializers.ValidationError('Корзина не найдена')
+
+        for item in cart.items.all():
+            shop = item.product.shop
+            if not shop.is_active:
+                raise serializers.ValidationError(f'Магазин {shop.name} временно не принимает заказы')
+
+        return data
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
     shop = serializers.CharField(
