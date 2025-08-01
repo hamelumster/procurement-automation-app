@@ -1,10 +1,12 @@
 import yaml
-from django.shortcuts import render
-from rest_framework import permissions, status
+from django.shortcuts import render, get_object_or_404
+from rest_framework import permissions, status, generics
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from shops.models import Shop
+from shops.serializers import ShopAvialableSerializer
 from shops.services.shop_import import ShopImportService
 from users.models import SupplierProfile
 
@@ -39,3 +41,21 @@ class SupplierFeedUpload(APIView):
         result = service.run()
 
         return Response(result, status=status.HTTP_200_OK)
+
+
+class ShopToggleAvailability(generics.UpdateAPIView):
+    """
+    Позволяет поставщику включать и отключать приём заказов для конкретного магазина.
+
+    Только аутентифицированные пользователи с профилем SupplierProfile
+    могут менять флаг is_active у своих магазинов. Запросы на изменение чужих
+    магазинов запрещены.
+    """
+    queryset = Shop.objects.all()
+    serializer_class = ShopAvialableSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        supplier = self.request.user.supplier_profile
+        shop_pk = self.kwargs['shop_id']
+        return get_object_or_404(Shop, pk=shop_pk, supplier=supplier)
