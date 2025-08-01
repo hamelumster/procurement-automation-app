@@ -49,7 +49,11 @@ class AddCartItemSerializer(serializers.Serializer):
         except Product.DoesNotExist:
             raise serializers.ValidationError('Товар не найден')
 
-        # 2 Проверяем, достаточно ли товара на складе
+        # 2 Проверяем, активен ли магазин
+        if not product.shop.is_active:
+            raise serializers.ValidationError(f'Магазин {product.shop.name} временно не принимает заказы')
+
+        # 3 Проверяем, достаточно ли товара на складе
         if data['quantity'] > product.quantity:
             raise serializers.ValidationError('Недостаточно товара на складе')
 
