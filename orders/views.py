@@ -34,7 +34,7 @@ class CartViewSet(viewsets.ViewSet):
         { "product_id": 1, "quantity": 2 }
         -> добавляет товар в корзину (или увеличивает его кол-во)
         """
-        serializer = AddCartItemSerializer(data=request.data)
+        serializer = AddCartItemSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         product = get_object_or_404(Product, pk=serializer.validated_data['product_id'])
