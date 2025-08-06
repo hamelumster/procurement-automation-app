@@ -55,10 +55,10 @@ def send_order_confirmation_email(order_id):
     )
 
     # отправляем администратору
-    # send_mail(
-    #     f"[ADMIN] Новый заказ #{order.id}",
-    #     text_body,
-    #     settings.DEFAULT_FROM_EMAIL,
-    #     html_message=html_body,
-    #     fail_silently=False,
-    # )
+    send_mail(
+        f"[ADMIN] Новый заказ #{order.id}",
+        text_body,
+        settings.DEFAULT_FROM_EMAIL,
+        html_message=html_body,
+        fail_silently=False,
+    )
