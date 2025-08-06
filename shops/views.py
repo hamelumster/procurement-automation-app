@@ -59,3 +59,7 @@ class ShopToggleAvailability(generics.UpdateAPIView):
         supplier = self.request.user.supplier_profile
         shop_pk = self.kwargs['shop_id']
         return get_object_or_404(Shop, pk=shop_pk, supplier=supplier)
+
+
+class ShopExportView(APIView):
+    pass
