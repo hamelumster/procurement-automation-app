@@ -1,3 +1,6 @@
+from collections import OrderedDict
+
+from products.models import Category
 from shops.models import Shop
 
 
@@ -10,7 +13,16 @@ class ShopExportService:
         self.shop = Shop
 
     def assembly_categories(self):
-        pass
+        queryset = Category.objects.filter(
+            products__shop=self.shop
+        ).distinct().order_by('external_id')
+        categories = []
+        for cat in queryset:
+            categories.append(OrderedDict([
+                ('id', cat.external_id),
+                ('name', cat.name)
+            ]))
+        return categories
 
     def assembly_products(self):
         pass
