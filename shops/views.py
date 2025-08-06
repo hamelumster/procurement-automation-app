@@ -1,5 +1,8 @@
 import yaml
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+from django.utils.text import slugify
 from rest_framework import permissions, status, generics
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -7,6 +10,7 @@ from rest_framework.views import APIView
 
 from shops.models import Shop
 from shops.serializers import ShopAvialableSerializer
+from shops.services.shop_export import ShopExportService
 from shops.services.shop_import import ShopImportService
 from users.models import SupplierProfile
 
@@ -62,4 +66,32 @@ class ShopToggleAvailability(generics.UpdateAPIView):
 
 
 class ShopExportView(APIView):
-    pass
+    """
+    GET /api/shops/{shop_id}/export/
+    - сгенерировать и скачать YAML-файл (прайс) заданного магазина.
+    Доступно только его владельцу (supplier_profile).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, shop_id):
+        # 1 Проверяем, что магазин принадлежит текущему поставщику
+        shop = get_object_or_404(
+            Shop,
+            pk=shop_id,
+            supplier=request.user.supplier_profile
+        )
+
+        # 2 Генерируем YAML-файл
+        yaml_str = ShopExportService(shop).run()
+
+        # 3 Формируем имя файла
+        slug = slugify(shop.name)
+        timestamp = timezone.localtime().strftime('%Y%m%d')
+        filename = f'{slug}_{timestamp}.yaml'
+
+        # 4 Возвращаем HttpResponse с заголовком для скачивания
+        return HttpResponse(
+            yaml_str,
+            content_type='application/x-yaml',
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+        )
