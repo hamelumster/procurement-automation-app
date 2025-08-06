@@ -1,4 +1,6 @@
+from django.db.models import Sum
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
 
 from orders.models import CartItem, Cart, OrderItem, Order, ShopOrderItem, ShopOrder
 from products.models import Product
@@ -45,7 +47,7 @@ class AddCartItemSerializer(serializers.Serializer):
     def validate(self, data):
         # 1 Проверяем, существует ли товар по айди
         try:
-            product = Product.objects.get(pk=data['product_id'])
+            product = get_object_or_404(Product.objects.select_related('shop'), pk=data['product_id'])
         except Product.DoesNotExist:
             raise serializers.ValidationError('Товар не найден')
 
@@ -55,6 +57,15 @@ class AddCartItemSerializer(serializers.Serializer):
 
         # 3 Проверяем, достаточно ли товара на складе
         if data['quantity'] > product.quantity:
+            raise serializers.ValidationError('Недостаточно товара на складе')
+
+        # 4 Проверяем, сколько товара уже в корзине
+        cart, _ = Cart.objects.get_or_create(user=self.context['request'].user)
+        existing_quantity = CartItem.objects.filter(cart=cart, product=product) \
+                             .aggregate(total_quantity=Sum('quantity'))['total_quantity'] or 0
+
+        # 5 Проверяем, чтобы количество товара не превышало остаток на складе
+        if (data['quantity'] + existing_quantity) > product.quantity:
             raise serializers.ValidationError('Недостаточно товара на складе')
 
         return data
