@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
@@ -162,6 +163,13 @@ class OrderViewSet(mixins.ListModelMixin,
 
         # 4) пересчитываем итоговую сумму общего Order
         order.calculate_total()
+
+        # 4.1) "Списываем" товар со склада
+        for so in order.shop_orders.all():
+            for item in so.items.all():
+                Product.objects.filter(pk=item.product_id).update(
+                    quantity=F('quantity') - item.quantity
+                )
 
         # 5) Отправляем email с подтверждением заказа
         send_order_confirmation_email.delay(order.id)
