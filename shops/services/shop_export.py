@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from products.models import Category
+from products.models import Category, Product
 from shops.models import Shop
 
 
@@ -25,7 +25,21 @@ class ShopExportService:
         return categories
 
     def assembly_products(self):
-        pass
+        queryset = Product.objects.filter(shop=self.shop).ordered_by('external_id')
+        products = []
+        for ps in queryset:
+            products.append(OrderedDict([
+                ('id', ps.external_id),
+                ('category_id', ps.category.external_id),
+                ('model', ps.model),
+                ('name', ps.name),
+                ('description', ps.description),
+                ('parameters', ps.characteristics),
+                ('price', ps.price),
+                ('price_rrc', ps.price_rrc),
+                ('quantity', ps.quantity),
+            ]))
+        return products
 
     def run(self):
         pass
