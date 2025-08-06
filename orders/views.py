@@ -204,6 +204,13 @@ class OrderViewSet(mixins.ListModelMixin,
         # отменяем все связанные ShopOrder
         ShopOrder.objects.filter(order=order).update(status=ShopOrder.STATUS_CANCELLED)
 
+        # Восстанавливаем остаток на складе
+        for so in order.shop_orders.all():
+            for item in so.items.all():
+                Product.objects.filter(pk=item.product_id).update(
+                    quantity=F('quantity') + item.quantity
+                )
+
         return Response(self.get_serializer(order).data,
                         status=status.HTTP_200_OK)
 
