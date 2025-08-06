@@ -1,15 +1,15 @@
 from collections import defaultdict
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets, status, mixins, generics
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from orders.models import Cart, CartItem, Order, OrderItem, ShopOrder, ShopOrderItem
-from orders.serializers import CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer, ConfirmOrderSerializer, \
-    OrderSerializer, OrderStatusSerializer, ShopOrderStatusSerializer, ShopOrderSerializer
+from orders.models import Cart, CartItem, Order, ShopOrder, ShopOrderItem
+from orders.serializers import (CartSerializer, AddCartItemSerializer, RemoveCartItemSerializer,
+                                OrderSerializer, ShopOrderStatusSerializer, ShopOrderSerializer)
 from products.models import Product
 from users.models import DeliveryContact
 from users.tasks import send_order_confirmation_email
@@ -95,9 +95,9 @@ class OrderViewSet(mixins.ListModelMixin,
     ):
     """
     list:
-        GET  /api/orders/        — список всех заказов клиента (или всех для admin).
+        GET  /api/orders/ — список всех заказов клиента (или всех для admin).
     retrieve:
-        GET  /api/orders/{pk}/   — детали одного заказа.
+        GET  /api/orders/{pk}/ — детали одного заказа.
     confirm:
         POST /api/orders/confirm/ — оформить корзину в Order + ShopOrder.
     """
@@ -191,11 +191,10 @@ class OrderViewSet(mixins.ListModelMixin,
                             status=status.HTTP_400_BAD_REQUEST)
 
         # ставим статус cancelled
-        order.cancel()  # предполагается, что в модели у вас есть метод cancel()
+        order.cancel()
 
         # отменяем все связанные ShopOrder
-        ShopOrder.objects.filter(order=order) \
-            .update(status=ShopOrder.STATUS_CANCELLED)
+        ShopOrder.objects.filter(order=order).update(status=ShopOrder.STATUS_CANCELLED)
 
         return Response(self.get_serializer(order).data,
                         status=status.HTTP_200_OK)
@@ -206,9 +205,9 @@ class ShopOrderViewSet(mixins.ListModelMixin,
                        viewsets.GenericViewSet):
     """
     list:
-        GET  /api/shop-orders/        — список подзаказов магазина.
+        GET  /api/shop-orders/ — список подзаказов магазина.
     retrieve:
-        GET  /api/shop-orders/{pk}/   — детали одного подзаказа.
+        GET  /api/shop-orders/{pk}/ — детали одного подзаказа.
     process:
         PATCH /api/shop-orders/{pk}/process/ — сменить статус подзаказа.
     """
