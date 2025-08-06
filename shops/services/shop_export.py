@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+import yaml
+
 from products.models import Category, Product
 from shops.models import Shop
 
@@ -41,5 +43,28 @@ class ShopExportService:
             ]))
         return products
 
-    def run(self):
-        pass
+    def run(self) -> str:
+        """
+        Формирует структуру и возвращает YAML-строку:
+
+        shop: <имя>
+        categories:
+          - id: ...
+            name: ...
+        goods:
+          - id: ...
+            category_id: ...
+            ...
+        """
+        data = OrderedDict([
+            ('shop', self.shop.name),
+            ('categories', self.assembly_categories()),
+            ('goods', self.assembly_products())
+        ])
+        return yaml.safe_dump(
+            data,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
+            encoding='utf-8'
+        )
