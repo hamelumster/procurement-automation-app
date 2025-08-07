@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from orders.views import CartViewSet, OrderViewSet, ShopOrderViewSet
 from products.views import ProductViewSet
-from shops.views import SupplierFeedUpload, ShopToggleAvailability
+from shops.views import SupplierFeedUpload, ShopToggleAvailability, ShopExportView
 from users.views import RegisterAPIView, EmailTokenObtainPairView, DeliveryContactViewSet
 
 # Создаем роутер и регистрируем наш ProductViewSet
@@ -48,4 +48,6 @@ urlpatterns = [
     path('api/suppliers/upload-feed/', SupplierFeedUpload.as_view(), name='supplier_feed_upload'),
     # For suppliers: toggle store availability
     path('api/shops/<int:pk>/availability/', ShopToggleAvailability.as_view(), name='shop_availability'),
+    # For suppliers: export products from db to yaml
+    path('api/shops/<int:shop_id>/export/', ShopExportView.as_view(), name='shop_export')
 ]
