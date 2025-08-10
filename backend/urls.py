@@ -24,7 +24,6 @@ from products.views import ProductViewSet
 from shops.views import SupplierFeedUpload, ShopToggleAvailability, ShopExportView
 from users.views import RegisterAPIView, EmailTokenObtainPairView, DeliveryContactViewSet
 
-# Создаем роутер и регистрируем наш ProductViewSet
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'cart', CartViewSet, basename='cart')
