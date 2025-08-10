@@ -5,7 +5,6 @@ from rest_framework.generics import get_object_or_404
 from orders.models import CartItem, Cart, OrderItem, Order, ShopOrderItem, ShopOrder
 from products.models import Product
 from users.models import DeliveryContact
-from users.serializers import DeliveryContactSerializer
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -192,7 +191,6 @@ class OrderSerializer(serializers.ModelSerializer):
     order_id = serializers.IntegerField(source='id', read_only=True)
     status = serializers.CharField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
-    # updated_at = serializers.DateTimeField(read_only=True)
     order_total_amount = serializers.DecimalField(
         source='total_amount',
         max_digits=10,
@@ -211,7 +209,6 @@ class OrderSerializer(serializers.ModelSerializer):
             'order_id',
             'status',
             'created_at',
-            # 'updated_at',
             'order_total_amount',
             'suborders',
         )
