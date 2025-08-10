@@ -35,7 +35,9 @@ class CartViewSet(viewsets.ViewSet):
         { "product_id": 1, "quantity": 2 }
         -> добавляет товар в корзину (или увеличивает его кол-во)
         """
-        serializer = AddCartItemSerializer(data=request.data, context={'request': request})
+        serializer = AddCartItemSerializer(data=request.data,
+                                           context={'request': request}
+                                           )
         serializer.is_valid(raise_exception=True)
 
         product = get_object_or_404(Product, pk=serializer.validated_data['product_id'])
@@ -70,7 +72,9 @@ class CartViewSet(viewsets.ViewSet):
         if isinstance(request.data, dict) and 'quantity' in request.data:
             data['quantity'] = request.data['quantity']
 
-        serializer = RemoveCartItemSerializer(data={**request.data, 'product_id': product_id})
+        serializer = RemoveCartItemSerializer(data={**request.data,
+                                                    'product_id': product_id}
+                                              )
         serializer.is_valid(raise_exception=True)
         qty_to_remove = serializer.validated_data.get('quantity')
 
@@ -92,13 +96,12 @@ class CartViewSet(viewsets.ViewSet):
 
 class OrderViewSet(mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
-                   viewsets.GenericViewSet
-    ):
+                   viewsets.GenericViewSet):
     """
     list:
-        GET  /api/orders/ — список всех заказов клиента (или всех для admin).
+        GET /api/orders/ — список всех заказов клиента (или всех для admin).
     retrieve:
-        GET  /api/orders/{pk}/ — детали одного заказа.
+        GET /api/orders/{pk}/ — детали одного заказа.
     confirm:
         POST /api/orders/confirm/ — оформить корзину в Order + ShopOrder.
     """
@@ -220,9 +223,9 @@ class ShopOrderViewSet(mixins.ListModelMixin,
                        viewsets.GenericViewSet):
     """
     list:
-        GET  /api/shop-orders/ — список подзаказов магазина.
+        GET /api/shop-orders/ — список подзаказов магазина.
     retrieve:
-        GET  /api/shop-orders/{pk}/ — детали одного подзаказа.
+        GET /api/shop-orders/{pk}/ — детали одного подзаказа.
     process:
         PATCH /api/shop-orders/{pk}/process/ — сменить статус подзаказа.
     """
