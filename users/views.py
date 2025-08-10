@@ -63,11 +63,11 @@ class DeliveryContactViewSet(viewsets.ModelViewSet):
     Список и создание контактов доставки для текущего пользователя.
 
     list:
-        GET  /api/contacts/      — возвращает все сохраненные контакты.
+        GET /api/contacts/ — возвращает все сохраненные контакты.
     create:
-        POST /api/contacts/      — создает новый контакт.
+        POST /api/contacts/ — создает новый контакт.
     delete:
-        DELETE /api/contacts/{pk}/   — удаляет контакт (если не привязан к заказам).
+        DELETE /api/contacts/{pk}/ — удаляет контакт (если не привязан к заказам).
     """
     serializer_class = DeliveryContactSerializer
     permission_classes = [permissions.IsAuthenticated]
