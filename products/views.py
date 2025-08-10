@@ -13,12 +13,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     """
     GET /api/products/
     Поддерживается:
-        - ?search=…      — поиск по name и description
-        - ?supplier=…    — фильтр по id магазина
-        - ?category=…    — фильтр по внешнему id категории
-        - ?price_min=…   — цена >= …
-        - ?price_max=…   — цена <= …
-        - ?ordering=…    — сортировка (например price, -name)
+        - ?search=… — поиск по name и description
+        - ?supplier=… — фильтр по id магазина
+        - ?category=… — фильтр по внешнему id категории
+        - ?price_min=… — цена >= …
+        - ?price_max=… — цена <= …
+        - ?ordering=… — сортировка (например price, -name)
     """
     queryset = Product.objects.select_related('shop', 'category').all()
     serializer_class = ProductSerializer
